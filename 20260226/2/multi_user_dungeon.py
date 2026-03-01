@@ -1,10 +1,10 @@
-from cowsay import cowsay
+import cowsay
 import sys
 
 
 def encounter(x, y):
     global monsters
-    print(cowsay(monsters[(x, y)]))
+    print(cowsay.cowsay(monsters[(x, y)][1]))
 
 
 x, y = 0, 0
@@ -27,12 +27,16 @@ while cmd != '':
             print(f'Moved to ({x}, {y})')
             if (x, y) in monsters:
                 encounter(x, y)
-    elif len(cmd) == 4 and cmd[0] == 'addmon':
+    elif len(cmd) == 5 and cmd[0] == 'addmon':
+        cmd = [cmd[0], cmd[2], cmd[3], cmd[1], cmd[4]]
         if cmd[1].isdigit() and cmd[2].isdigit() and 0 <= int(cmd[1]) <= 9 and 0 <= int(cmd[2]) <= 9:
-            print(f'Added monster to ({int(cmd[1])}, {int(cmd[2])}) saying {cmd[3]}')
-            if (int(cmd[1]), int(cmd[2])) in monsters:
-                print('Replaced the old monster')
-            monsters[(int(cmd[1]), int(cmd[2]))] = cmd[3]
+            if cmd[3] not in cowsay.list_cows():
+                print('Cannot add unknown monster')
+            else:
+                print(f'Added monster {cmd[3]} to ({int(cmd[1])}, {int(cmd[2])}) saying {cmd[4]}')
+                if (int(cmd[1]), int(cmd[2])) in monsters:
+                    print('Replaced the old monster')
+                monsters[(int(cmd[1]), int(cmd[2]))] = [cmd[3], cmd[4]]
         else:
             print('Invalid arguements')
     elif len(cmd) >= 1 and cmd[0] in ['up', 'down', 'left', 'right', 'addmon']:
