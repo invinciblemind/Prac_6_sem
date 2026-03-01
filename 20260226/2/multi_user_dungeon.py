@@ -4,7 +4,7 @@ import sys
 
 def encounter(x, y):
     global monsters
-    print(cowsay.cowsay(monsters[(x, y)][1]))
+    print(cowsay.cowsay(monsters[(x, y)][1], cow=monsters[(x, y)][0]))
 
 
 x, y = 0, 0
