@@ -30,6 +30,7 @@ list_cows = cowsay.list_cows()
 list_cows.append('jgsbat')
 x, y = 0, 0
 monsters = {}
+print("<<< Welcome to Python-MUD 0.1 >>>")
 cmd = sys.stdin.readline()
 while cmd != '':
     cmd = cmd.split()
