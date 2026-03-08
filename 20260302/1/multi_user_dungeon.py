@@ -7,9 +7,9 @@ import shlex
 def encounter(x, y):
     global monsters, jgsbat
     if monsters[(x, y)][0] == 'jgsbat':
-        print(cowsay.cowsay(monsters[(x, y)][1], cowfile=jgsbat))
+        print(cowsay.cowsay(monsters[(x, y)][2], cowfile=jgsbat))
     else:
-        print(cowsay.cowsay(monsters[(x, y)][1], cow=monsters[(x, y)][0]))
+        print(cowsay.cowsay(monsters[(x, y)][2], cow=monsters[(x, y)][0]))
 
 
 jgsbat = cowsay.read_dot_cow(StringIO("""
@@ -50,16 +50,19 @@ while cmd != '':
             print(f'Moved to ({x}, {y})')
             if (x, y) in monsters:
                 encounter(x, y)
-    elif len(cmd) == 5 and cmd[0] == 'addmon':
-        cmd = [cmd[0], cmd[2], cmd[3], cmd[1], cmd[4]]
-        if cmd[1].isdigit() and cmd[2].isdigit() and 0 <= int(cmd[1]) <= 9 and 0 <= int(cmd[2]) <= 9:
-            if cmd[3] not in list_cows:
+    elif len(cmd) == 9 and cmd[0] == 'addmon':
+        name = cmd[1]
+        hello_str = cmd[cmd.index('hello') + 1]
+        hp = cmd[cmd.index('hp') + 1]
+        xx, yy = cmd[cmd.index('coords') + 1:cmd.index('coords') + 3]
+        if xx.isdigit() and yy.isdigit() and 0 <= int(xx) <= 9 and 0 <= int(yy) <= 9:
+            if name not in list_cows:
                 print('Cannot add unknown monster')
             else:
-                print(f'Added monster {cmd[3]} to ({int(cmd[1])}, {int(cmd[2])}) saying {cmd[4]}')
-                if (int(cmd[1]), int(cmd[2])) in monsters:
+                print(f'Added monster {name} with health {hp} to ({xx}, {yy}) saying {hello_str}')
+                if (int(xx), int(yy)) in monsters:
                     print('Replaced the old monster')
-                monsters[(int(cmd[1]), int(cmd[2]))] = [cmd[3], cmd[4]]
+                monsters[(int(xx), int(yy))] = [name, hp, hello_str]
         else:
             print('Invalid arguements')
     elif len(cmd) >= 1 and cmd[0] in ['up', 'down', 'left', 'right', 'addmon']:
