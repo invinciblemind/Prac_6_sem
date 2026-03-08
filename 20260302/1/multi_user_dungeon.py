@@ -1,6 +1,7 @@
 import cowsay
 import sys
 from io import StringIO
+import shlex
 
 
 def encounter(x, y):
@@ -33,7 +34,7 @@ monsters = {}
 print("<<< Welcome to Python-MUD 0.1 >>>")
 cmd = sys.stdin.readline()
 while cmd != '':
-    cmd = cmd.split()
+    cmd = shlex.split(cmd)
     if len(cmd) == 1:
         if cmd[0] == 'up':
             y = (y + 9) % 10
