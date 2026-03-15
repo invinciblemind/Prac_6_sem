@@ -2,6 +2,7 @@ import cowsay
 import sys
 from io import StringIO
 import shlex
+import cmd
 
 
 def encounter(x, y):
@@ -11,27 +12,7 @@ def encounter(x, y):
     else:
         print(cowsay.cowsay(monsters[(x, y)][2], cow=monsters[(x, y)][0]))
 
-
-jgsbat = cowsay.read_dot_cow(StringIO("""
-$the_cow = <<EOC;
-         $thoughts
-          $thoughts
-    ,_                    _,
-    ) '-._  ,_    _,  _.-' (
-    )  _.-'.|\\\\--//|.'-._  (
-     )'   .'\\/o\\/o\\/'.   `(
-      ) .' . \\====/ . '. (
-       )  / <<    >> \\  (
-        '-._/``  ``\\_.-'
-  jgs     __\\\\'--'//__
-         (((""`  `"")))
-EOC
-"""))
-list_cows = cowsay.list_cows()
-list_cows.append('jgsbat')
-x, y = 0, 0
-monsters = {}
-print("<<< Welcome to Python-MUD 0.1 >>>")
+'''
 cmd = sys.stdin.readline()
 while cmd != '':
     cmd = shlex.split(cmd)
@@ -70,3 +51,90 @@ while cmd != '':
     else:
         print('Invalid command')
     cmd = sys.stdin.readline()
+'''
+
+
+class MUD(cmd.Cmd):
+    prompt = ''
+    x, y = 0, 0
+    monsters = {}
+    """
+    def do_size(self, arg):
+        '''
+        print file sizes
+        '''
+        args = split(arg)
+        for name in args:
+            print(f'{name}: {Path(name).stat().st_size}')
+    """
+    def do_down(self, arg):
+        '''
+        moving down on 1 cell
+        '''
+        if arg == '':
+            MUD.y = (MUD.y + 1) % 10
+            print(f'Moved to ({MUD.x}, {MUD.y})')
+            if (MUD.x, MUD.y) in MUD.monsters:
+                encounter(MUD.x, MUD.y)
+        else:
+            print('Invalid arguements')
+    
+    def do_up(self, arg):
+        '''
+        moving up on 1 cell
+        '''
+        if arg == '':
+            MUD.y = (MUD.y + 9) % 10
+            print(f'Moved to ({MUD.x}, {MUD.y})')
+            if (MUD.x, MUD.y) in MUD.monsters:
+                encounter(MUD.x, MUD.y)
+        else:
+            print('Invalid arguements')
+    
+    def do_right(self, arg):
+        '''
+        moving right on 1 cell
+        '''
+        if arg == '':
+            MUD.x = (MUD.x + 1) % 10
+            print(f'Moved to ({MUD.x}, {MUD.y})')
+            if (MUD.x, MUD.y) in MUD.monsters:
+                encounter(MUD.x, MUD.y)
+        else:
+            print('Invalid arguements')
+    
+    def do_left(self, arg):
+        '''
+        moving left on 1 cell
+        '''
+        if arg == '':
+            MUD.x = (MUD.x + 9) % 10
+            print(f'Moved to ({MUD.x}, {MUD.y})')
+            if (MUD.x, MUD.y) in MUD.monsters:
+                encounter(MUD.x, MUD.y)
+        else:
+            print('Invalid arguements')
+    
+    def do_EOF(self, arg):
+        return 1
+
+if __name__ == '__main__':
+    jgsbat = cowsay.read_dot_cow(StringIO("""
+    $the_cow = <<EOC;
+             $thoughts
+              $thoughts
+        ,_                    _,
+        ) '-._  ,_    _,  _.-' (
+        )  _.-'.|\\\\--//|.'-._  (
+         )'   .'\\/o\\/o\\/'.   `(
+          ) .' . \\====/ . '. (
+           )  / <<    >> \\  (
+            '-._/``  ``\\_.-'
+      jgs     __\\\\'--'//__
+             (((""`  `"")))
+    EOC
+    """))
+    list_cows = cowsay.list_cows()
+    list_cows.append('jgsbat')
+    print("<<< Welcome to Python-MUD 0.1 >>>")
+    MUD().cmdloop()
