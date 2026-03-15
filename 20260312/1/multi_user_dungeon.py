@@ -132,6 +132,11 @@ class MUD(cmd.Cmd):
         else:
             print('Invalid arguements')
     
+    def complete_attack(self, text, line, begidx, endidx):
+        command = shlex.split(line + '.')
+        if len(command) == 3 and command[1] == 'with':
+            return [weapon for weapon in ['sword', 'spear', 'axe'] if weapon.startswith(text)]
+    
     def default(self, arg):
         print('Invalid command')
     
