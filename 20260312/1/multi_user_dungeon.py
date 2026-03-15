@@ -76,18 +76,40 @@ class MUD(cmd.Cmd):
             hello_str = command[command.index('hello') + 1]
             hp = command[command.index('hp') + 1]
             xx, yy = command[command.index('coords') + 1:command.index('coords') + 3]
-            if xx.isdigit() and yy.isdigit() and 0 <= int(xx) <= 9 and 0 <= int(yy) <= 9:
+            if xx.isdigit() and yy.isdigit() and hp.isdigit() and 0 <= int(xx) <= 9 and 0 <= int(yy) <= 9:
                 if name not in MUD.list_cows:
                     print('Cannot add unknown monster')
                 else:
                     print(f'Added monster {name} with health {hp} to ({xx}, {yy}) saying {hello_str}')
                     if (int(xx), int(yy)) in MUD.monsters:
                         print('Replaced the old monster')
-                    MUD.monsters[(int(xx), int(yy))] = [name, hp, hello_str]
+                    MUD.monsters[(int(xx), int(yy))] = [name, int(hp), hello_str]
             else:
                 print('Invalid arguements')
         else:
             print('Invalid arguements')
+    
+    def do_attack(self, arg):
+        '''
+        attacking a monster on the current cell
+        '''
+        if arg == '':
+            if (MUD.x, MUD.y) in MUD.monsters:
+                damage = min(10, MUD.monsters[(MUD.x, MUD.y)][1])
+                print(f'Attacked {MUD.monsters[(MUD.x, MUD.y)][0]}, damage {damage} hp')
+                MUD.monsters[(MUD.x, MUD.y)][1] -= damage
+                if MUD.monsters[(MUD.x, MUD.y)][1] == 0:
+                    print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} died')
+                    del MUD.monsters[(MUD.x, MUD.y)]
+                else:
+                    print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} now has {MUD.monsters[(MUD.x, MUD.y)][1]}')
+            else:
+                print('No monster here')
+        else:
+            print('Invalid arguements')
+    
+    def default(self, arg):
+        print('Invalid command')
     
     def do_EOF(self, arg):
         return 1
