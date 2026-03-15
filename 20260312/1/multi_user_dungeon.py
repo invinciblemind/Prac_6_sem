@@ -91,9 +91,10 @@ class MUD(cmd.Cmd):
     
     def do_attack(self, arg):
         '''
-        attacking a monster on the current cell
+        attacking a monster on the current cell using maybe custom weapon
         '''
-        if arg == '':
+        command = shlex.split(arg)
+        if command == []:
             if (MUD.x, MUD.y) in MUD.monsters:
                 damage = min(10, MUD.monsters[(MUD.x, MUD.y)][1])
                 print(f'Attacked {MUD.monsters[(MUD.x, MUD.y)][0]}, damage {damage} hp')
@@ -105,6 +106,29 @@ class MUD(cmd.Cmd):
                     print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} now has {MUD.monsters[(MUD.x, MUD.y)][1]}')
             else:
                 print('No monster here')
+        elif len(command) == 2 and command[0] == 'with':
+            weapon = command[1]
+            strength = 0
+            if weapon == 'sword':
+                strength = 10
+            elif weapon == 'spear':
+                strength = 15
+            elif weapon == 'axe':
+                strength = 20
+            else:
+                print('Unknown weapon')
+            if strength > 0:
+                if (MUD.x, MUD.y) in MUD.monsters:
+                    damage = min(strength, MUD.monsters[(MUD.x, MUD.y)][1])
+                    print(f'Attacked {MUD.monsters[(MUD.x, MUD.y)][0]}, damage {damage} hp')
+                    MUD.monsters[(MUD.x, MUD.y)][1] -= damage
+                    if MUD.monsters[(MUD.x, MUD.y)][1] == 0:
+                        print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} died')
+                        del MUD.monsters[(MUD.x, MUD.y)]
+                    else:
+                        print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} now has {MUD.monsters[(MUD.x, MUD.y)][1]}')
+                else:
+                    print('No monster here')
         else:
             print('Invalid arguements')
     
