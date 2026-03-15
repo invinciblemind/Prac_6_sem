@@ -91,22 +91,27 @@ class MUD(cmd.Cmd):
     
     def do_attack(self, arg):
         '''
-        attacking a monster on the current cell
+        attacking a specific monster on the current cell
         '''
-        if arg == '':
-            if (MUD.x, MUD.y) in MUD.monsters:
-                damage = min(10, MUD.monsters[(MUD.x, MUD.y)][1])
-                print(f'Attacked {MUD.monsters[(MUD.x, MUD.y)][0]}, damage {damage} hp')
-                MUD.monsters[(MUD.x, MUD.y)][1] -= damage
-                if MUD.monsters[(MUD.x, MUD.y)][1] == 0:
-                    print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} died')
-                    del MUD.monsters[(MUD.x, MUD.y)]
-                else:
-                    print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} now has {MUD.monsters[(MUD.x, MUD.y)][1]}')
-            else:
-                print('No monster here')
-        else:
+        command = shlex.split(arg)
+        if len(command) != 1:
             print('Invalid arguements')
+        elif (MUD.x, MUD.y) not in MUD.monsters:
+            print(f'No {arg} here')
+        elif MUD.monsters[(MUD.x, MUD.y)][0] != arg:
+            print(f'No {arg} here')
+        else:
+            damage = min(10, MUD.monsters[(MUD.x, MUD.y)][1])
+            print(f'Attacked {MUD.monsters[(MUD.x, MUD.y)][0]}, damage {damage} hp')
+            MUD.monsters[(MUD.x, MUD.y)][1] -= damage
+            if MUD.monsters[(MUD.x, MUD.y)][1] == 0:
+                print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} died')
+                del MUD.monsters[(MUD.x, MUD.y)]
+            else:
+                print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} now has {MUD.monsters[(MUD.x, MUD.y)][1]}')
+    
+    def complete_attack(self, text, line, begidx, endidx):
+        return [mon for mon in MUD.list_cows if mon.startswith(text)]
     
     def default(self, arg):
         print('Invalid command')
