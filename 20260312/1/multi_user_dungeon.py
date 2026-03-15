@@ -91,23 +91,26 @@ class MUD(cmd.Cmd):
     
     def do_attack(self, arg):
         '''
-        attacking a monster on the current cell using maybe custom weapon
+        attacking a specific monster on the current cell using maybe custom weapon
         '''
         command = shlex.split(arg)
-        if command == []:
-            if (MUD.x, MUD.y) in MUD.monsters:
-                damage = min(10, MUD.monsters[(MUD.x, MUD.y)][1])
-                print(f'Attacked {MUD.monsters[(MUD.x, MUD.y)][0]}, damage {damage} hp')
-                MUD.monsters[(MUD.x, MUD.y)][1] -= damage
-                if MUD.monsters[(MUD.x, MUD.y)][1] == 0:
-                    print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} died')
-                    del MUD.monsters[(MUD.x, MUD.y)]
-                else:
-                    print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} now has {MUD.monsters[(MUD.x, MUD.y)][1]}')
+        if len(command) not in [1, 3]:
+            print('Invalid arguements')
+        elif (MUD.x, MUD.y) not in MUD.monsters:
+            print(f'No {command[0]} here')
+        elif MUD.monsters[(MUD.x, MUD.y)][0] != command[0]:
+            print(f'No {command[0]} here')
+        elif len(command) == 1:
+            damage = min(10, MUD.monsters[(MUD.x, MUD.y)][1])
+            print(f'Attacked {MUD.monsters[(MUD.x, MUD.y)][0]}, damage {damage} hp')
+            MUD.monsters[(MUD.x, MUD.y)][1] -= damage
+            if MUD.monsters[(MUD.x, MUD.y)][1] == 0:
+                print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} died')
+                del MUD.monsters[(MUD.x, MUD.y)]
             else:
-                print('No monster here')
-        elif len(command) == 2 and command[0] == 'with':
-            weapon = command[1]
+                print(f'{MUD.monsters[(MUD.x, MUD.y)][0]} now has {MUD.monsters[(MUD.x, MUD.y)][1]}')
+        elif len(command) == 3 and command[1] == 'with':
+            weapon = command[2]
             strength = 0
             if weapon == 'sword':
                 strength = 10
@@ -134,7 +137,9 @@ class MUD(cmd.Cmd):
     
     def complete_attack(self, text, line, begidx, endidx):
         command = shlex.split(line + '.')
-        if len(command) == 3 and command[1] == 'with':
+        if len(command) == 2:
+            return [mon for mon in MUD.list_cows if mon.startswith(text)]
+        if len(command) == 4 and command[2] == 'with':
             return [weapon for weapon in ['sword', 'spear', 'axe'] if weapon.startswith(text)]
     
     def default(self, arg):
