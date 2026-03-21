@@ -1,9 +1,26 @@
 import sys
 import socket
 import shlex
+import cowsay
+from io import StringIO
 
 host = "localhost" if len(sys.argv) < 2 else sys.argv[1]
 port = 1337 if len(sys.argv) < 3 else int(sys.argv[2])
+jgsbat = cowsay.read_dot_cow(StringIO("""
+$the_cow = <<EOC;
+         $thoughts
+          $thoughts
+    ,_                    _,
+    ) '-._  ,_    _,  _.-' (
+    )  _.-'.|\\\\--//|.'-._  (
+     )'   .'\\/o\\/o\\/'.   `(
+      ) .' . \\====/ . '. (
+       )  / <<    >> \\  (
+        '-._/``  ``\\_.-'
+  jgs     __\\\\'--'//__
+         (((""`  `"")))
+EOC
+"""))
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((host, port))
     while msg := sys.stdin.buffer.readline():
@@ -32,11 +49,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.sendall((' '.join(cmd) + ' 10\n').encode())
         elif len(cmd) == 4 and cmd[0] == 'attack' and cmd[2] == 'with' and cmd[3] in ['sword', 'spear', 'axe']:
             if cmd[3] == 'sword':
-                s.sendall((' '.join(cmd) + ' 10\n').encode())
+                s.sendall((' '.join(cmd[:2]) + ' 10\n').encode())
             elif cmd[3] == 'spear':
-                s.sendall((' '.join(cmd) + ' 15\n').encode())
+                s.sendall((' '.join(cmd[:2]) + ' 15\n').encode())
             elif cmd[3] == 'axe':
-                s.sendall((' '.join(cmd) + ' 20\n').encode())
+                s.sendall((' '.join(cmd[:2]) + ' 20\n').encode())
         elif len(cmd) >= 1 and cmd[0] in ['up', 'down', 'left', 'right', 'addmon', 'attack']:
             s.sendall('Invalid arguements\n'.encode())
         else:
