@@ -2,7 +2,8 @@ import asyncio
 
 async def echo(reader, writer):
     while data := await reader.readline():
-        writer.write(data.swapcase())
+        cmd = data.decode()[:-1]
+        writer.write(f'Received {cmd}, sending {cmd}'.encode())
     writer.close()
     await writer.wait_closed()
 
