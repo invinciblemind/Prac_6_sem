@@ -58,4 +58,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.sendall('Invalid arguements\n'.encode())
         else:
             s.sendall('Invalid command\n'.encode())
-        print(s.recv(1024).rstrip().decode())
+        reply = s.recv(1024).rstrip().decode()
+        if ', cowfile' in reply:
+            repl = reply.split('\n')
+            print(repl[0])
+            print(cowsay.cowsay(repl[1].split(', cowfile=')[0], cowfile=jgsbat))
+        elif ', cow' in reply:
+            repl = reply.split('\n')
+            print(repl[0])
+            print(cowsay.cowsay(repl[1].split(', cow=')[0], cow=repl[1].split(', cow=')[1]))
+        else:
+            print(reply)
