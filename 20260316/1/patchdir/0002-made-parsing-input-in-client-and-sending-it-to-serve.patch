@@ -1,0 +1,78 @@
+From 19c832e6e9856ab1c5ab7a13ab796bf87138c7d7 Mon Sep 17 00:00:00 2001
+From: Max Big <maxbig@MacBook-Air-Max.local>
+Date: Sat, 21 Mar 2026 15:30:51 +0300
+Subject: [PATCH 2/4] made parsing input in client and sending it to server,
+ server just returnes it
+
+---
+ 20260316/1/client.py | 36 +++++++++++++++++++++++++++++++++++-
+ 20260316/1/server.py |  3 ++-
+ 2 files changed, 37 insertions(+), 2 deletions(-)
+
+diff --git a/20260316/1/client.py b/20260316/1/client.py
+index ffce78e..aba5775 100644
+--- a/20260316/1/client.py
++++ b/20260316/1/client.py
+@@ -1,10 +1,44 @@
+ import sys
+ import socket
++import shlex
+ 
+ host = "localhost" if len(sys.argv) < 2 else sys.argv[1]
+ port = 1337 if len(sys.argv) < 3 else int(sys.argv[2])
+ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+     s.connect((host, port))
+     while msg := sys.stdin.buffer.readline():
+-        s.sendall(msg)
++        cmd = shlex.split(msg.decode())
++        if len(cmd) == 1 and len(cmd[0]) <= 5:
++            if cmd[0] == 'up':
++                s.sendall('move 0 -1\n'.encode())
++            elif cmd[0] == 'down':
++                s.sendall('move 0 1\n'.encode())
++            elif cmd[0] == 'left':
++                s.sendall('move -1 0\n'.encode())
++            elif cmd[0] == 'right':
++                s.sendall('move 1 0\n'.encode())
++            else:
++                s.sendall('Invalid command\n'.encode())
++        elif len(cmd) == 9 and cmd[0] == 'addmon':
++            name = cmd[1]
++            hello_str = cmd[cmd.index('hello') + 1]
++            hp = cmd[cmd.index('hp') + 1]
++            xx, yy = cmd[cmd.index('coords') + 1:cmd.index('coords') + 3]
++            if xx.isdigit() and yy.isdigit() and 0 <= int(xx) <= 9 and 0 <= int(yy) <= 9:
++                s.sendall(msg)
++            else:
++                s.sendall('Invalid arguements\n'.encode())
++        elif len(cmd) == 2 and cmd[0] == 'attack':
++            s.sendall((' '.join(cmd) + ' 10\n').encode())
++        elif len(cmd) == 4 and cmd[0] == 'attack' and cmd[2] == 'with' and cmd[3] in ['sword', 'spear', 'axe']:
++            if cmd[3] == 'sword':
++                s.sendall((' '.join(cmd) + ' 10\n').encode())
++            elif cmd[3] == 'spear':
++                s.sendall((' '.join(cmd) + ' 15\n').encode())
++            elif cmd[3] == 'axe':
++                s.sendall((' '.join(cmd) + ' 20\n').encode())
++        elif len(cmd) >= 1 and cmd[0] in ['up', 'down', 'left', 'right', 'addmon', 'attack']:
++            s.sendall('Invalid arguements\n'.encode())
++        else:
++            s.sendall('Invalid command\n'.encode())
+         print(s.recv(1024).rstrip().decode())
+diff --git a/20260316/1/server.py b/20260316/1/server.py
+index fe02447..eeacfaf 100644
+--- a/20260316/1/server.py
++++ b/20260316/1/server.py
+@@ -2,7 +2,8 @@ import asyncio
+ 
+ async def echo(reader, writer):
+     while data := await reader.readline():
+-        writer.write(data.swapcase())
++        cmd = data.decode()[:-1]
++        writer.write(f'Received {cmd}, sending {cmd}'.encode())
+     writer.close()
+     await writer.wait_closed()
+ 
+-- 
+2.39.3 (Apple Git-146)
+

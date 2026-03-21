@@ -1,0 +1,32 @@
+From 3299c830dfff161b11211d43e991eae0985e03ea Mon Sep 17 00:00:00 2001
+From: Max Big <maxbig@MacBook-Air-Max.local>
+Date: Sat, 21 Mar 2026 16:16:13 +0300
+Subject: [PATCH 4/4] made cowsay print in client
+
+---
+ 20260316/1/client.py | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/20260316/1/client.py b/20260316/1/client.py
+index 6fbe37e..c1ca086 100644
+--- a/20260316/1/client.py
++++ b/20260316/1/client.py
+@@ -58,4 +58,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+             s.sendall('Invalid arguements\n'.encode())
+         else:
+             s.sendall('Invalid command\n'.encode())
+-        print(s.recv(1024).rstrip().decode())
++        reply = s.recv(1024).rstrip().decode()
++        if ', cowfile' in reply:
++            repl = reply.split('\n')
++            print(repl[0])
++            print(cowsay.cowsay(repl[1].split(', cowfile=')[0], cowfile=jgsbat))
++        elif ', cow' in reply:
++            repl = reply.split('\n')
++            print(repl[0])
++            print(cowsay.cowsay(repl[1].split(', cow=')[0], cow=repl[1].split(', cow=')[1]))
++        else:
++            print(reply)
+-- 
+2.39.3 (Apple Git-146)
+

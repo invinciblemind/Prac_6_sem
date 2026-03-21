@@ -1,0 +1,51 @@
+From 93f2b9ffd1217813ecc62f1483ad0d0e261b7bbc Mon Sep 17 00:00:00 2001
+From: Max Big <maxbig@MacBook-Air-Max.local>
+Date: Sat, 21 Mar 2026 14:24:28 +0300
+Subject: [PATCH 1/4] added basic cli-srv progs
+
+---
+ 20260316/1/client.py | 10 ++++++++++
+ 20260316/1/server.py | 14 ++++++++++++++
+ 2 files changed, 24 insertions(+)
+ create mode 100644 20260316/1/client.py
+ create mode 100644 20260316/1/server.py
+
+diff --git a/20260316/1/client.py b/20260316/1/client.py
+new file mode 100644
+index 0000000..ffce78e
+--- /dev/null
++++ b/20260316/1/client.py
+@@ -0,0 +1,10 @@
++import sys
++import socket
++
++host = "localhost" if len(sys.argv) < 2 else sys.argv[1]
++port = 1337 if len(sys.argv) < 3 else int(sys.argv[2])
++with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
++    s.connect((host, port))
++    while msg := sys.stdin.buffer.readline():
++        s.sendall(msg)
++        print(s.recv(1024).rstrip().decode())
+diff --git a/20260316/1/server.py b/20260316/1/server.py
+new file mode 100644
+index 0000000..fe02447
+--- /dev/null
++++ b/20260316/1/server.py
+@@ -0,0 +1,14 @@
++import asyncio
++
++async def echo(reader, writer):
++    while data := await reader.readline():
++        writer.write(data.swapcase())
++    writer.close()
++    await writer.wait_closed()
++
++async def main():
++    server = await asyncio.start_server(echo, '0.0.0.0', 1337)
++    async with server:
++        await server.serve_forever()
++
++asyncio.run(main())
+-- 
+2.39.3 (Apple Git-146)
+
