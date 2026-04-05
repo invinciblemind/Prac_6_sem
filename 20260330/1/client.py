@@ -69,7 +69,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.sendall((' '.join(cmd[:2]) + ' 15\n').encode())
                 elif cmd[3] == 'axe':
                     s.sendall((' '.join(cmd[:2]) + ' 20\n').encode())
-            elif len(cmd) >= 1 and cmd[0] in ['up', 'down', 'left', 'right', 'addmon', 'attack']:
+            elif len(cmd) == 2 and cmd[0] == 'sayall':
+                s.sendall((msg + '\n').encode())
+            elif len(cmd) >= 1 and cmd[0] in ['up', 'down', 'left', 'right', 'addmon', 'attack', 'sayall']:
                 s.sendall('Invalid arguements\n'.encode())
             else:
                 s.sendall('Invalid command\n'.encode())

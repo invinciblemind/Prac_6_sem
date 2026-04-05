@@ -107,6 +107,12 @@ async def chat(reader, writer):
                         send = asyncio.create_task(reader.readline())
                         for out in clients.values():
                             await out.put(reply)
+                elif cmd[0] == 'sayall':
+                    reply = f'{username}: {cmd[1]}'
+                    send = asyncio.create_task(reader.readline())
+                    for out in clients.values():
+                        if out != clients[username]:
+                            await out.put(reply)
                 elif cmd[0] == 'quit':
                     q = 1
                     break
