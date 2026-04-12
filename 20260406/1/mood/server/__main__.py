@@ -4,9 +4,14 @@ import asyncio
 import cowsay
 import shlex
 from io import StringIO
+import random
+import threading
+import time
 
 
 clients = {}
+client_writers = {}
+coords_clients = {}
 active_users = set()
 
 monsters = {}
@@ -27,6 +32,53 @@ $the_cow = <<EOC;
          (((""`  `"")))
 EOC
 """))
+dct = {(0, 1): 'down', (0, -1): 'up', (1, 0): 'right', (-1, 0): 'left'}
+
+
+async def monster_moving():
+    """Move monsters"""
+    while True:
+        await asyncio.sleep(30)
+        if monsters:
+            xn, yn = random.choice(list(monsters.items()))[0]
+            xp, yp = random.choice([[0, 1], [0, -1], [1, 0], [-1, 0]])
+            while (xn + xp, yn + yp) in monsters:
+                xn, yn = random.choice(list(monsters.items()))[0]
+                xp, yp = random.choice([[0, 1], [0, -1], [1, 0], [-1, 0]])
+            monsters[(xn + xp, yn + yp)] = monsters[(xn, yn)]
+            del monsters[(xn, yn)]
+            
+            for username, writer in client_writers.items():
+                try:
+                    writer.write(f"{monsters[(xn + xp, yn + yp)][0]} moved one cell {dct[(xp, yp)]}\n".encode())
+                    await writer.drain()
+                except:
+                    pass
+            
+            for queue, pos in coords_clients.items():
+                if pos == [xn + xp, yn + yp]:
+                    for name, q in clients.items():
+                        if q == queue:
+                            monster = monsters[(xn + xp, yn + yp)]
+                            if monster[0] == 'jgsbat':
+                                reply = cowsay.cowsay(monster[2], cowfile=jgsbat)
+                            else:
+                                reply = cowsay.cowsay(monster[2], cow=monster[0])
+                            try:
+                                writer_obj = client_writers.get(name)
+                                if writer_obj:
+                                    writer_obj.write(f"{reply}\n".encode())
+                                    await writer_obj.drain()
+                            except:
+                                pass
+                            break
+
+
+def run_monster_moving():
+    """Launch monster_moving function."""
+    new_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(new_loop)
+    new_loop.run_until_complete(monster_moving())
 
 
 async def chat(reader, writer):
@@ -48,31 +100,33 @@ async def chat(reader, writer):
     except:
         writer.close()
         return
+    
     clients[username] = asyncio.Queue()
+    client_writers[username] = writer
     send = asyncio.create_task(reader.readline())
     receive = asyncio.create_task(clients[username].get())
     q = 0
     
-    x, y = 0, 0
+    coords_clients[clients[username]] = [0, 0]
     
     while not reader.at_eof():
         done, pending = await asyncio.wait([send, receive], return_when=asyncio.FIRST_COMPLETED)
-        for q in done:
-            if q is send:
-                msg = q.result().decode()[:-1]
+        for task in done:
+            if task is send:
+                msg = task.result().decode()[:-1]
                 cmd = shlex.split(msg)
                 if msg in ['Invalid command', 'Invalid arguements']:
                     send = asyncio.create_task(reader.readline())
                     await clients[username].put(msg)
                 elif cmd[0] == 'move':
-                    x = (x + 10 + int(cmd[1])) % 10
-                    y = (y + 10 + int(cmd[2])) % 10
-                    reply = f'Moved to ({x}, {y})\n'
-                    if (x, y) in monsters:
-                        if monsters[(x, y)][0] == 'jgsbat':
-                            reply += cowsay.cowsay(monsters[(x, y)][2], cowfile=jgsbat)
+                    coords_clients[clients[username]][0] = (coords_clients[clients[username]][0] + 10 + int(cmd[1])) % 10
+                    coords_clients[clients[username]][1] = (coords_clients[clients[username]][1] + 10 + int(cmd[2])) % 10
+                    reply = f'Moved to ({coords_clients[clients[username]][0]}, {coords_clients[clients[username]][1]})\n'
+                    if (coords_clients[clients[username]][0], coords_clients[clients[username]][1]) in monsters:
+                        if monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0] == 'jgsbat':
+                            reply += cowsay.cowsay(monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][2], cowfile=jgsbat)
                         else:
-                            reply += cowsay.cowsay(monsters[(x, y)][2], cow=monsters[(x, y)][0])
+                            reply += cowsay.cowsay(monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][2], cow=monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0])
                     send = asyncio.create_task(reader.readline())
                     await clients[username].put(reply)
                 elif cmd[0] == 'addmon':
@@ -92,21 +146,21 @@ async def chat(reader, writer):
                         for out in clients.values():
                             await out.put(reply)
                 elif cmd[0] == 'attack':
-                    if (x, y) not in monsters:
+                    if (coords_clients[clients[username]][0], coords_clients[clients[username]][1]) not in monsters:
                         send = asyncio.create_task(reader.readline())
                         await clients[username].put(f'No {cmd[1]} here')
-                    elif monsters[(x, y)][0] != cmd[1]:
+                    elif monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0] != cmd[1]:
                         send = asyncio.create_task(reader.readline())
                         await clients[username].put(f'No {cmd[1]} here')
                     else:
-                        damage = min(int(cmd[2]), monsters[(x, y)][1])
-                        reply = f'Attacked {monsters[(x, y)][0]}, damage {damage} hp\n'
-                        monsters[(x, y)][1] -= damage
-                        if monsters[(x, y)][1] == 0:
-                            reply += f'{monsters[(x, y)][0]} died'
-                            del monsters[(x, y)]
+                        damage = min(int(cmd[2]), monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1])
+                        reply = f'Attacked {monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0]}, damage {damage} hp\n'
+                        monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1] -= damage
+                        if monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1] == 0:
+                            reply += f'{monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0]} died'
+                            del monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])]
                         else:
-                            reply += f'{monsters[(x, y)][0]} now has {monsters[(x, y)][1]}'
+                            reply += f'{monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0]} now has {monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1]}'
                         send = asyncio.create_task(reader.readline())
                         for out in clients.values():
                             await out.put(reply)
@@ -119,16 +173,18 @@ async def chat(reader, writer):
                 elif cmd[0] == 'quit':
                     q = 1
                     break
-            elif q is receive:
+            elif task is receive:
                 receive = asyncio.create_task(clients[username].get())
-                writer.write(f"{q.result()}\n".encode())
+                writer.write(f"{task.result()}\n".encode())
                 await writer.drain()
         if q == 1:
             break
     send.cancel()
     receive.cancel()
     print(me, "DONE")
+    del coords_clients[clients[username]]
     del clients[username]
+    del client_writers[username]
     for out in clients.values():
         await out.put(f'{username} left')
     active_users.remove(username)
@@ -138,6 +194,10 @@ async def chat(reader, writer):
 
 async def main():
     """Start of server."""
+    
+    timer = threading.Thread(target=run_monster_moving, daemon=True)
+    timer.start()
+    
     server = await asyncio.start_server(chat, '0.0.0.0', 1337)
     async with server:
         await server.serve_forever()
