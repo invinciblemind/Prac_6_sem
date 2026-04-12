@@ -6,7 +6,6 @@ import shlex
 from io import StringIO
 import random
 import threading
-import time
 
 
 clients = {}
@@ -36,7 +35,7 @@ dct = {(0, 1): 'down', (0, -1): 'up', (1, 0): 'right', (-1, 0): 'left'}
 
 
 async def monster_moving():
-    """Move monsters"""
+    """Move monsters."""
     while True:
         await asyncio.sleep(30)
         if monsters:
@@ -194,7 +193,6 @@ async def chat(reader, writer):
 
 async def main():
     """Start of server."""
-    
     timer = threading.Thread(target=run_monster_moving, daemon=True)
     timer.start()
     
