@@ -1,0 +1,8 @@
+# Test script for MUD server
+bless Alice
+sendto up
+bless Bob
+sendto down
+sendto left
+bless Charlie
+quit
