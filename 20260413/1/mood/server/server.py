@@ -49,7 +49,6 @@ async def monster_moving():
                 xp, yp = random.choice([[0, 1], [0, -1], [1, 0], [-1, 0]])
             monsters_move[(xn + xp, yn + yp)] = monsters_move[(xn, yn)]
             del monsters_move[(xn, yn)]
-            print(monsters is monsters_move)
             if monsters is monsters_move:
                 for username, writer in client_writers.items():
                     try:
@@ -180,7 +179,6 @@ async def chat(reader, writer):
                         monsters_move = monsters
                     else:
                         monsters_move = copy.deepcopy(monsters)
-                    print(monsters is monsters_move)
                     send = asyncio.create_task(reader.readline())
                     await clients[username].put(reply)
                 elif cmd[0] == 'quit':
