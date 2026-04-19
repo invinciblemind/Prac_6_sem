@@ -6,6 +6,7 @@ import shlex
 from io import StringIO
 import random
 import threading
+import copy
 
 
 clients = {}
@@ -13,7 +14,8 @@ client_writers = {}
 coords_clients = {}
 active_users = set()
 
-monsters = {}
+monsters_move = {}
+monsters = monsters_move
 list_cows = cowsay.list_cows()
 list_cows.append('jgsbat')
 jgsbat = cowsay.read_dot_cow(StringIO("""
@@ -36,41 +38,43 @@ dct = {(0, 1): 'down', (0, -1): 'up', (1, 0): 'right', (-1, 0): 'left'}
 
 async def monster_moving():
     """Move monsters."""
+    global monsters, monsters_move
     while True:
         await asyncio.sleep(30)
-        if monsters:
-            xn, yn = random.choice(list(monsters.items()))[0]
+        if monsters_move:
+            xn, yn = random.choice(list(monsters_move.items()))[0]
             xp, yp = random.choice([[0, 1], [0, -1], [1, 0], [-1, 0]])
-            while (xn + xp, yn + yp) in monsters:
-                xn, yn = random.choice(list(monsters.items()))[0]
+            while (xn + xp, yn + yp) in monsters_move:
+                xn, yn = random.choice(list(monsters_move.items()))[0]
                 xp, yp = random.choice([[0, 1], [0, -1], [1, 0], [-1, 0]])
-            monsters[(xn + xp, yn + yp)] = monsters[(xn, yn)]
-            del monsters[(xn, yn)]
-            
-            for username, writer in client_writers.items():
-                try:
-                    writer.write(f"{monsters[(xn + xp, yn + yp)][0]} moved one cell {dct[(xp, yp)]}\n".encode())
-                    await writer.drain()
-                except:
-                    pass
-            
-            for queue, pos in coords_clients.items():
-                if pos == [xn + xp, yn + yp]:
-                    for name, q in clients.items():
-                        if q == queue:
-                            monster = monsters[(xn + xp, yn + yp)]
-                            if monster[0] == 'jgsbat':
-                                reply = cowsay.cowsay(monster[2], cowfile=jgsbat)
-                            else:
-                                reply = cowsay.cowsay(monster[2], cow=monster[0])
-                            try:
-                                writer_obj = client_writers.get(name)
-                                if writer_obj:
-                                    writer_obj.write(f"{reply}\n".encode())
-                                    await writer_obj.drain()
-                            except:
-                                pass
-                            break
+            monsters_move[(xn + xp, yn + yp)] = monsters_move[(xn, yn)]
+            del monsters_move[(xn, yn)]
+            print(monsters is monsters_move)
+            if monsters is monsters_move:
+                for username, writer in client_writers.items():
+                    try:
+                        writer.write(f"{monsters_move[(xn + xp, yn + yp)][0]} moved one cell {dct[(xp, yp)]}\n".encode())
+                        await writer.drain()
+                    except:
+                        pass
+                
+                for queue, pos in coords_clients.items():
+                    if pos == [xn + xp, yn + yp]:
+                        for name, q in clients.items():
+                            if q == queue:
+                                monster = monsters_move[(xn + xp, yn + yp)]
+                                if monster[0] == 'jgsbat':
+                                    reply = cowsay.cowsay(monster[2], cowfile=jgsbat)
+                                else:
+                                    reply = cowsay.cowsay(monster[2], cow=monster[0])
+                                try:
+                                    writer_obj = client_writers.get(name)
+                                    if writer_obj:
+                                        writer_obj.write(f"{reply}\n".encode())
+                                        await writer_obj.drain()
+                                except:
+                                    pass
+                                break
 
 
 def run_monster_moving():
@@ -82,6 +86,7 @@ def run_monster_moving():
 
 async def chat(reader, writer):
     """Realise all dialogs."""
+    global monsters, monsters_move
     me = "{}:{}".format(*writer.get_extra_info('peername'))
     print(me)
     try:
@@ -169,6 +174,15 @@ async def chat(reader, writer):
                     for out in clients.values():
                         if out != clients[username]:
                             await out.put(reply)
+                elif cmd[0] == 'movemonsters':
+                    reply = f'Moving monsters: {cmd[1]}\n'
+                    if cmd[1] == 'on':
+                        monsters_move = monsters
+                    else:
+                        monsters_move = copy.deepcopy(monsters)
+                    print(monsters is monsters_move)
+                    send = asyncio.create_task(reader.readline())
+                    await clients[username].put(reply)
                 elif cmd[0] == 'quit':
                     q = 1
                     break
