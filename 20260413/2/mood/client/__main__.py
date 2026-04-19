@@ -74,7 +74,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.sendall((msg + '\n').encode())
             elif len(cmd) == 2 and cmd[0] == 'movemonsters' and cmd[1] in ['on', 'off']:
                 s.sendall((msg + '\n').encode())
-            elif len(cmd) >= 1 and cmd[0] in ['up', 'down', 'left', 'right', 'addmon', 'attack', 'sayall', 'movemonsters']:
+            elif len(cmd) == 2 and cmd[0] == 'locale' and cmd[1] in ['ru_RU.UTF8', 'en_US.UTF8']:
+                s.sendall((msg + '\n').encode())
+            elif len(cmd) >= 1 and cmd[0] in ['up', 'down', 'left', 'right', 'addmon', 'attack', 'sayall', 'movemonsters', 'locale']:
                 s.sendall('Invalid arguements\n'.encode())
             else:
                 s.sendall('Invalid command\n'.encode())

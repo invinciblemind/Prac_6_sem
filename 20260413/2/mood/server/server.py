@@ -7,12 +7,24 @@ from io import StringIO
 import random
 import threading
 import copy
+import gettext
+import locale
 
 
+clients_locales = {}
 clients = {}
 client_writers = {}
 coords_clients = {}
 active_users = set()
+LOCALES = {
+    ("ru_RU", "UTF-8"): gettext.translation(
+        "tra", 
+        localedir="po",
+        languages=["ru_RU.UTF-8"],
+        fallback=True
+    ),
+    ("en_US", "UTF-8"): gettext.NullTranslations(),
+}
 
 monsters_move = {}
 monsters = monsters_move
@@ -49,7 +61,6 @@ async def monster_moving():
                 xp, yp = random.choice([[0, 1], [0, -1], [1, 0], [-1, 0]])
             monsters_move[(xn + xp, yn + yp)] = monsters_move[(xn, yn)]
             del monsters_move[(xn, yn)]
-            print(monsters is monsters_move)
             if monsters is monsters_move:
                 for username, writer in client_writers.items():
                     try:
@@ -89,6 +100,11 @@ async def chat(reader, writer):
     global monsters, monsters_move
     me = "{}:{}".format(*writer.get_extra_info('peername'))
     print(me)
+    
+    locale.setlocale(locale.LC_ALL, ("en_US", "UTF-8"))
+    transcode = LOCALES[("en_US", "UTF-8")]
+    _, ngettext = transcode.gettext, transcode.ngettext
+    
     try:
         username = (await reader.readline()).decode().strip()
         if username in active_users:
@@ -96,8 +112,15 @@ async def chat(reader, writer):
             await writer.drain()
             writer.close()
             return
-        for out in clients.values():
-            await out.put(f'{username} is connected')
+        clients_locales[username] = ("en_US", "UTF-8")
+        for nameee, out in clients.items():
+            locale.setlocale(locale.LC_ALL, clients_locales[nameee])
+            transcode = LOCALES[clients_locales[nameee]]
+            _, ngettext = transcode.gettext, transcode.ngettext
+            await out.put(_("{} is connected").format(username))
+        locale.setlocale(locale.LC_ALL, clients_locales[username])
+        transcode = LOCALES[clients_locales[username]]
+        _, ngettext = transcode.gettext, transcode.ngettext
         active_users.add(username)
         writer.write("ACCEPTED\n".encode())
         await writer.drain()
@@ -112,6 +135,25 @@ async def chat(reader, writer):
     q = 0
     
     coords_clients[clients[username]] = [0, 0]
+    
+    
+    '''
+    N = 1
+    print(ngettext("Entered {} word", "Entered {} words", N).format(N))
+    N = 2
+    print(ngettext("Entered {} word", "Entered {} words", N).format(N))
+    N = 5
+    print(ngettext("Entered {} word", "Entered {} words", N).format(N))
+    '''
+    
+    '''
+    N = 1
+    print(ngettext("Entered {} word", "Entered {} words", N).format(N))
+    N = 2
+    print(ngettext("Entered {} word", "Entered {} words", N).format(N))
+    N = 5
+    print(ngettext("Entered {} word", "Entered {} words", N).format(N))
+    '''
     
     while not reader.at_eof():
         done, pending = await asyncio.wait([send, receive], return_when=asyncio.FIRST_COMPLETED)
@@ -140,34 +182,54 @@ async def chat(reader, writer):
                     xx, yy = cmd[cmd.index('coords') + 1:cmd.index('coords') + 3]
                     if name not in list_cows:
                         send = asyncio.create_task(reader.readline())
-                        await clients[username].put('Cannot add unknown monster')
+                        await clients[username].put(_('Cannot add unknown monster'))
                     else:
-                        reply = f'Added monster {name} with health {hp} to ({xx}, {yy}) saying {hello_str}\n'
+                        hp = int(hp)
+                        flag0 = 0
                         if (int(xx), int(yy)) in monsters:
-                            reply += 'Replaced the old monster'
+                            flag0 = 1
                         monsters[(int(xx), int(yy))] = [name, int(hp), hello_str]
                         send = asyncio.create_task(reader.readline())
-                        for out in clients.values():
+                        for nameee, out in clients.items():
+                            locale.setlocale(locale.LC_ALL, clients_locales[nameee])
+                            transcode = LOCALES[clients_locales[nameee]]
+                            _, ngettext = transcode.gettext, transcode.ngettext
+                            reply = ngettext("Added monster {} with health {} hp to ({}, {}) saying {}\n", "Added monster {} with health {} hps to ({}, {}) saying {}\n", hp).format(name, hp, xx, yy, hello_str)
+                            if flag0:
+                                reply += _('Replaced the old monster\n')
                             await out.put(reply)
+                        locale.setlocale(locale.LC_ALL, clients_locales[username])
+                        transcode = LOCALES[clients_locales[username]]
+                        _, ngettext = transcode.gettext, transcode.ngettext
                 elif cmd[0] == 'attack':
                     if (coords_clients[clients[username]][0], coords_clients[clients[username]][1]) not in monsters:
                         send = asyncio.create_task(reader.readline())
-                        await clients[username].put(f'No {cmd[1]} here')
+                        await clients[username].put(_('No {} here').format(cmd[1]))
                     elif monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0] != cmd[1]:
                         send = asyncio.create_task(reader.readline())
-                        await clients[username].put(f'No {cmd[1]} here')
+                        await clients[username].put(_('No {} here').format(cmd[1]))
                     else:
                         damage = min(int(cmd[2]), monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1])
-                        reply = f'Attacked {monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0]}, damage {damage} hp\n'
+                        param1 = monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0]
                         monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1] -= damage
+                        flag1 = 0
                         if monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1] == 0:
-                            reply += f'{monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0]} died'
+                            flag1 = 1
                             del monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])]
-                        else:
-                            reply += f'{monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0]} now has {monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1]}'
                         send = asyncio.create_task(reader.readline())
-                        for out in clients.values():
+                        for nameee, out in clients.items():
+                            locale.setlocale(locale.LC_ALL, clients_locales[nameee])
+                            transcode = LOCALES[clients_locales[nameee]]
+                            _, ngettext = transcode.gettext, transcode.ngettext
+                            reply = ngettext("Attacked {}, damage {} hp\n", "Attacked {}, damage {} hps\n", damage).format(param1, damage)
+                            if flag1:
+                                reply += _('{} died\n').format(param1)
+                            else:
+                                reply += ngettext('{} now has {} hp\n', '{} now has {} hps\n', monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1]).format(monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][0], monsters[(coords_clients[clients[username]][0], coords_clients[clients[username]][1])][1])
                             await out.put(reply)
+                        locale.setlocale(locale.LC_ALL, clients_locales[username])
+                        transcode = LOCALES[clients_locales[username]]
+                        _, ngettext = transcode.gettext, transcode.ngettext
                 elif cmd[0] == 'sayall':
                     reply = f'{username}: {cmd[1]}'
                     send = asyncio.create_task(reader.readline())
@@ -180,7 +242,20 @@ async def chat(reader, writer):
                         monsters_move = monsters
                     else:
                         monsters_move = copy.deepcopy(monsters)
-                    print(monsters is monsters_move)
+                    send = asyncio.create_task(reader.readline())
+                    await clients[username].put(reply)
+                elif cmd[0] == 'locale':
+                    if cmd[1] == 'ru_RU.UTF8':
+                        clients_locales[username] = ("ru_RU", "UTF-8")
+                        locale.setlocale(locale.LC_ALL, clients_locales[username])
+                        transcode = LOCALES[clients_locales[username]]
+                    else:
+                        clients_locales[username] = ("en_US", "UTF-8")
+                        locale.setlocale(locale.LC_ALL, clients_locales[username])
+                        transcode = LOCALES[clients_locales[username]]
+                    _, ngettext = transcode.gettext, transcode.ngettext
+                    
+                    reply = _("Set up locale: {}\n").format(cmd[1])
                     send = asyncio.create_task(reader.readline())
                     await clients[username].put(reply)
                 elif cmd[0] == 'quit':
@@ -198,8 +273,14 @@ async def chat(reader, writer):
     del coords_clients[clients[username]]
     del clients[username]
     del client_writers[username]
-    for out in clients.values():
-        await out.put(f'{username} left')
+    for nameee, out in clients.items():
+        locale.setlocale(locale.LC_ALL, clients_locales[nameee])
+        transcode = LOCALES[clients_locales[nameee]]
+        _, ngettext = transcode.gettext, transcode.ngettext
+        await out.put(_('{} left\n').format(username))
+    locale.setlocale(locale.LC_ALL, clients_locales[username])
+    transcode = LOCALES[clients_locales[username]]
+    _, ngettext = transcode.gettext, transcode.ngettext
     active_users.remove(username)
     writer.close()
     await writer.wait_closed()
