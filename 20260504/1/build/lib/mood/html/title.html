@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Техническая документация MUD сервера &#8212; MUD (client-server) 1.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="mud">
+<h1>MUD Сервер: Техническая документация<a class="headerlink" href="#mud" title="Link to this heading">¶</a></h1>
+<section id="id1">
+<h2>Описание задачи<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p>Разработка многопользовательского игрового сервера (MUD - Multi-User Dungeon)
+с поддержкой:</p>
+<ul class="simple">
+<li><p>Асинхронной обработки подключений через <cite>asyncio</cite></p></li>
+<li><p>Игрового поля размером 10x10 клеток</p></li>
+<li><p>Перемещения игроков по командам: up, down, left, right</p></li>
+<li><p>Создания и перемещения монстров</p></li>
+<li><p>Боевой системы с различным оружием (sword, spear, axe)</p></li>
+<li><p>Обмена сообщениями между игроками (sayall)</p></li>
+<li><p>Автоматического движения монстров каждые 30 секунд</p></li>
+<li><p>Мгновенного оповещения всех игроков о событиях</p></li>
+</ul>
+<section id="id2">
+<h3>Команды клиента<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><cite>up</cite>, <cite>down</cite>, <cite>left</cite>, <cite>right</cite> - перемещение по карте</p></li>
+<li><p><cite>addmon &lt;name&gt; hello &lt;text&gt; hp &lt;hp&gt; coords &lt;x&gt; &lt;y&gt;</cite> - создание монстра</p></li>
+<li><p><cite>attack &lt;monster&gt;</cite> - атака монстра (урон 10)</p></li>
+<li><p><cite>attack &lt;monster&gt; with &lt;weapon&gt;</cite> - атака с оружием (sword=10, spear=15, axe=20)</p></li>
+<li><p><cite>sayall &lt;text&gt;</cite> - отправка сообщения всем игрокам</p></li>
+</ul>
+</section>
+</section>
+<section id="id3">
+<h2>Ссылки<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="server.html">Техническая документация API</a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MUD (client-server)</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Документация:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="server.html">Модуль сервера</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Max G.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/title.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

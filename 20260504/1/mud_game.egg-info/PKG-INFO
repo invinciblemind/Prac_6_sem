@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: mud-game
+Version: 1.0.0
+Summary: Multi-User Dungeon with cowsay monsters and i18n
+Author-email: Your Name <you@example.com>
+License: MIT
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: cowsay>=6.0
+
+# MUD Game
+
+Multi-User Dungeon with cowsay monsters and i18n.

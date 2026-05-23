@@ -100,6 +100,58 @@ def task_html():
     }
 
 
+def task_copy_docs():
+    """Копировать сгенерированную HTML-документацию в пакет mood/html."""
+    src = 'doc/_build/html'
+    dst = 'mood/html'
+    return {
+        'actions': [
+            (shutil.rmtree, [dst], {'ignore_errors': True}),
+            (shutil.copytree, [src, dst]),
+        ],
+        'file_dep': ['doc/_build/html/index.html'],
+        'targets': [f'{dst}/index.html'],
+        'clean': [(clean_targets, [[dst]])],
+    }
+
+
+def task_wheel():
+    """Собрать бинарный дистрибутив (wheel)."""
+    return {
+        'actions': ['python -m build --wheel'],
+        'task_dep': ['i18n', 'copy_docs'],   # copy_docs зависит от html
+        'file_dep': ['pyproject.toml', 'MANIFEST.in'],
+        'targets': ['dist/*.whl'],
+        'clean': [(clean_targets, [['dist']])],
+    }
+
+
+def task_sdist():
+    """Собрать исходный дистрибутив (sdist)."""
+    return {
+        'actions': ['python -m build --sdist'],
+        'task_dep': ['clean_all'],   # очистить все генераты перед сборкой
+        'file_dep': ['pyproject.toml', 'MANIFEST.in'],
+        'targets': ['dist/*.tar.gz'],
+        'clean': [(clean_targets, [['dist']])],
+    }
+
+
+def task_clean_all():
+    """Удалить все сгенерированные файлы (pot, mo, docs, dist, mood/html)."""
+    return {
+        'actions': [
+            (clean_targets, [[
+                'mood/server/tra.pot',
+                'mood/server/po/ru_RU/LC_MESSAGES/tra.mo',
+                'doc/_build',
+                'mood/html',
+                'dist'
+            ]]),
+        ],
+    }
+
+
 def task_test():
     """Run unit tests (depends on i18n because tests may check localized replies)."""
     return {
@@ -111,15 +163,4 @@ def task_test():
             'mood/client/__main__.py',
         ],
         'clean': [],
-    }
-
-
-def task_clean_all():
-    """Удалить все сгенерированные файлы (pot, mo, docs)."""
-    return {
-        'actions': [
-            (clean_targets, [['mood/server/tra.pot', 
-                              'mood/server/po/ru_RU/LC_MESSAGES/tra.mo', 
-                              'doc/_build']])
-        ],
     }

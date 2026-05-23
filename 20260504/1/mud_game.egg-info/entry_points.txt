@@ -1,0 +1,3 @@
+[console_scripts]
+mud-client = mood.client.__main__:start_client
+mud-server = mood.server:start_server

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mud-game"
+version = "1.0.0"
+description = "Multi-User Dungeon with cowsay monsters and i18n"
+readme = "README.md"
+authors = [{name = "Your Name", email = "you@example.com"}]
+license = {text = "MIT"}
+requires-python = ">=3.8"
+dependencies = [
+    "cowsay>=6.0",
+]
+
+[project.scripts]
+mud-client = "mood.client.__main__:start_client"
+mud-server = "mood.server:start_server"
+
+[tool.setuptools]
+packages = ["mood", "mood.client", "mood.server"]
+package-dir = {"" = "."}
+package-data = {mood = ["server/po/ru_RU/LC_MESSAGES/*.mo", "html/**/*.html", "html/**/*.css", "html/**/*.js", "html/_static/*"]}
+
+[dependency-groups]
+dev = [
+    "setuptools>=61.0",
+    "build>=1.0",
+    "doit>=0.36",
+    "babel>=2.12",
+    "sphinx>=6.0",
+]

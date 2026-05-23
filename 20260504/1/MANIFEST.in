@@ -1,0 +1,22 @@
+# Включить все исходники
+include babel.cfg
+include tra.po
+include mood/server/po/ru_RU/LC_MESSAGES/tra.po
+recursive-include doc *.rst *.py
+include test.mood
+include testing.py
+include mud_script.py
+include Pipfile Pipfile.lock
+recursive-include mood *.py
+recursive-include mood/client *.py
+recursive-include mood/server *.py
+
+# Исключить генераты и временные файлы
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude *.mo
+global-exclude *.pot
+prune doc/_build
+prune mood/html
+prune dist
+prune *.egg-info
