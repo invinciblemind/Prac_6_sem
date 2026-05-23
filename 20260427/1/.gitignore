@@ -1,0 +1,26 @@
+# Sphinx documentation
+doc/_build/
+doc/_static/
+doc/_templates/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
