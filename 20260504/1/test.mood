@@ -1,4 +1,9 @@
-addmon rat coords 7 7 hp 10 hello 'Squeak!'
+movemonsters off
+addmon rat coords 1 1 hp 30 hello 'Squeak!'
 right
-right
+down
+attack rat with sword
+attack rat with sword
+attack rat with sword
+attack rat with sword
 attack rat with sword
