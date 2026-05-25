@@ -1,0 +1,102 @@
+git clone git@github.com:invinciblemind/Prac_6_sem.git mud-check
+cd mud-check
+
+python3 -m venv venv-build
+source venv-build/bin/activate
+pip install --upgrade pip
+pip install doit babel sphinx build setuptools wheel python-cowsay
+
+
+flake8
+pydocdtyle
+
+
+
+python -m unittest testing.py
+
+
+
+doit clean_all
+doit wheel
+ls dist/
+
+
+
+python3 -m venv ~/mud_server_env
+python3 -m venv ~/mud_client1_env
+python3 -m venv ~/mud_client2_env
+
+
+
+
+for env in ~/mud_server_env ~/mud_client1_env ~/mud_client2_env; do
+    source $env/bin/activate
+    pip install dist/mud_game-1.0.0-py3-none-any.whl
+    deactivate
+done
+
+
+
+
+source ~/mud_server_env/bin/activate
+mud-server
+
+
+
+
+source ~/mud_client1_env/bin/activate
+mud-client alice
+
+
+
+
+addmon dragon coords 5 5 hp 50 hello 'Greetings!'
+up
+up
+left
+left
+
+
+
+down
+down
+right
+right
+
+
+
+
+attack dragon with axe
+
+
+
+addmon rat coords 7 7 hp 10 hello 'Squeak!'
+right
+right
+attack rat with sword
+
+
+
+cat test.mood | mud-client bob
+
+
+
+
+source ~/mud_client2_env/bin/activate
+mud-client bob
+
+
+sayall Hello from Bob!
+
+
+
+
+documentation
+
+
+
+attack dragon with axe
+
+locale ru_RU.UTF8
+
+attack dragon with axe
